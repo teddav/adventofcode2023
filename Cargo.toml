@@ -1,0 +1,11 @@
+[package]
+name = "aoc2023"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+regex = "1.10.2"
+
+[build-dependencies]
+regex = "1.10.2"
