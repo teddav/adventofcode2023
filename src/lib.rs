@@ -5,6 +5,7 @@ use std::path::Path;
 pub fn read_file(day: &str) -> io::Result<String> {
     let path = Path::new("inputs").join(format!("day{day}"));
     let contents = fs::read_to_string(path)?;
+    // let contents = include_str!("../inputs/day1");
     Ok(contents)
 }
 
@@ -21,10 +22,3 @@ macro_rules! get_input {
         aoc2023::read_file(day).unwrap()
     }};
 }
-
-// pub fn get_input() {
-//     let f = file!();
-
-//     // let file = read_file(day).unwrap();
-//     // let game = parse_input(&file);
-// }
