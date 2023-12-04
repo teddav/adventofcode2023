@@ -1,5 +1,6 @@
 use aoc2023::get_input;
 use regex::Regex;
+use std::collections::{HashMap, VecDeque};
 
 #[allow(dead_code)]
 pub fn main() {
@@ -10,12 +11,11 @@ pub fn main() {
 
 #[derive(Debug)]
 struct Card {
-    id: u8,
     winning_numbers: Vec<u8>,
     drawn_numbers: Vec<u8>,
 }
 
-fn parse_input(input: &str) -> Vec<Card> {
+fn parse_input(input: &str) -> HashMap<usize, Card> {
     let re = Regex::new(
         // r"Card (\d+): ((?: *\d+ *)+)\|((?: *\d+ *)+)",
         r"Card\s+(?P<id>\d+): (?P<winning_numbers>(?: *\d+ *)+)\|(?P<drawn_numbers>(?: *\d+ *)+)",
@@ -29,30 +29,30 @@ fn parse_input(input: &str) -> Vec<Card> {
             let captures = re.captures(card).unwrap();
 
             // let id = captures.get(1).unwrap().as_str().parse::<u8>().unwrap();
-            let id = captures["id"].parse::<u8>().unwrap();
-            let winning_numbers: Vec<u8> = captures["winning_numbers"]
-                .trim()
-                .split_whitespace()
-                .map(|n| n.parse().unwrap())
-                .collect();
-            let drawn_numbers: Vec<u8> = captures["drawn_numbers"]
-                .trim()
-                .split_whitespace()
-                .map(|n| n.parse().unwrap())
-                .collect();
+            let id = captures["id"].parse::<usize>().unwrap();
 
-            Card {
+            (
                 id,
-                winning_numbers,
-                drawn_numbers,
-            }
+                Card {
+                    winning_numbers: captures["winning_numbers"]
+                        .trim()
+                        .split_whitespace()
+                        .map(|n| n.parse().unwrap())
+                        .collect(),
+                    drawn_numbers: captures["drawn_numbers"]
+                        .trim()
+                        .split_whitespace()
+                        .map(|n| n.parse().unwrap())
+                        .collect(),
+                },
+            )
         })
         .collect()
 }
 
-fn part1(cards: Vec<Card>) -> u32 {
+fn part1(cards: HashMap<usize, Card>) -> u32 {
     cards
-        .iter()
+        .values()
         .map(|card| {
             card.drawn_numbers.iter().fold(0, |count, n| {
                 if card.winning_numbers.contains(&n) {
@@ -69,8 +69,32 @@ fn part1(cards: Vec<Card>) -> u32 {
         .sum()
 }
 
-fn part2(cards: Vec<Card>) -> u32 {
-    0
+fn part2(cards: HashMap<usize, Card>) -> usize {
+    let mut all_cards = vec![];
+    let mut stack = VecDeque::from_iter(cards.keys().cloned().collect::<Vec<usize>>());
+    let mut memoize_matches: [Option<usize>; 256] = [None; 256];
+    while let Some(card_id) = stack.pop_front() {
+        all_cards.push(card_id);
+        let mut matches = if let Some(m) = memoize_matches[card_id] {
+            m
+        } else {
+            let card = cards.get(&card_id).unwrap();
+            let _matches = card.drawn_numbers.iter().fold(0, |count, n| {
+                if card.winning_numbers.contains(&n) {
+                    count + 1
+                } else {
+                    count
+                }
+            });
+            memoize_matches[card_id] = Some(_matches);
+            _matches
+        };
+        while matches > 0 {
+            stack.push_back(card_id + matches);
+            matches -= 1;
+        }
+    }
+    all_cards.len()
 }
 
 #[cfg(test)]
@@ -95,6 +119,6 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
     #[test]
     fn test_part2() {
         assert_eq!(part2(parse_input(EXAMPLE)), 30);
-        // assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
+        assert_eq!(part2(parse_input(&get_input!(file!()))), 8549735);
     }
 }
