@@ -69,13 +69,13 @@ zoneight234
     ";
 
     #[test]
-    fn test_day1_part1() {
+    fn test_part1() {
         assert_eq!(part1(parse_input(EXAMPLE1)), 142);
         assert_eq!(part1(parse_input(&get_input!(file!()))), 54916);
     }
 
     #[test]
-    fn test_day1_part2() {
+    fn test_part2() {
         assert_eq!(part2(parse_input(EXAMPLE2)), 281);
         assert_eq!(part2(parse_input(&get_input!(file!()))), 54728);
     }
