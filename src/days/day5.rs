@@ -1,4 +1,5 @@
 use aoc2023::get_input;
+use std::collections::VecDeque;
 
 #[allow(dead_code)]
 pub fn main() {
@@ -33,12 +34,8 @@ fn parse_input(input: &str) -> Map {
                     .unwrap()
                     .split("\n")
                     .map(|range| {
-                        range
-                            .split(" ")
-                            .map(|n| n.parse().unwrap())
-                            .collect::<Vec<u64>>()
-                            .try_into()
-                            .unwrap()
+                        let r: Vec<u64> = range.split(" ").map(|n| n.parse().unwrap()).collect();
+                        [r[0], r[1], r[1] + r[2]]
                     })
                     .collect()
             })
@@ -51,9 +48,9 @@ fn part1(map: Map) -> u64 {
         .into_iter()
         .map(|mut seed| {
             for transformation in &map.transformations {
-                for [destination, source, length] in transformation {
-                    if seed >= *source && seed < source + length {
-                        seed = destination + (seed - source);
+                for &[destination, source_start, source_end] in transformation {
+                    if seed >= source_start && seed < source_end {
+                        seed = destination + seed - source_start;
                         break;
                     }
                 }
@@ -65,7 +62,59 @@ fn part1(map: Map) -> u64 {
 }
 
 fn part2(map: Map) -> u64 {
-    0
+    let mut seeds: VecDeque<[u64; 2]> = VecDeque::from_iter(map.seeds.chunks(2).map(|c| {
+        let c: [u64; 2] = c.try_into().unwrap();
+        [c[0], c[0] + c[1]]
+    }));
+    let mut next: Vec<[u64; 2]> = vec![];
+
+    for transformation in &map.transformations {
+        'currentloop: while let Some([start, end]) = seeds.pop_front() {
+            for &[destination, source_start, source_end] in transformation {
+                let overlap_start = start.max(source_start);
+                let overlap_end = end.min(source_end);
+                if overlap_start < overlap_end {
+                    next.push([
+                        overlap_start + destination - source_start,
+                        overlap_end + destination - source_start,
+                    ]);
+
+                    if overlap_start > start {
+                        seeds.push_back([start, overlap_start]);
+                    }
+                    if end > overlap_end {
+                        seeds.push_back([overlap_end, end]);
+                    }
+                    continue 'currentloop;
+                }
+
+                // if start < source_start && end >= source_start {
+                //     next.push([start, source_start]);
+                //     next.push([destination, end - source_start + destination]);
+
+                //     if end >= source_end {
+                //         next.push([source_end, end]);
+                //     }
+                //     continue 'currentloop;
+                // }
+                // if start >= source_start && start < source_end {
+                //     next.push([
+                //         destination + start - source_start,
+                //         source_end + destination - source_start,
+                //     ]);
+                //     if end >= source_end {
+                //         next.push([source_end, end]);
+                //     }
+                //     continue 'currentloop;
+                // }
+            }
+
+            next.push([start, end]);
+        }
+        seeds = next.clone().into();
+        next.clear();
+    }
+    seeds.iter().map(|c| c[0]).min().unwrap()
 }
 
 #[cfg(test)]
@@ -116,7 +165,7 @@ humidity-to-location map:
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(parse_input(EXAMPLE)), 0);
-        // assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
+        assert_eq!(part2(parse_input(EXAMPLE)), 46);
+        assert_eq!(part2(parse_input(&get_input!(file!()))), 108956227);
     }
 }
