@@ -4,31 +4,18 @@ use aoc2023::get_input;
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input)));
-    // println!("Part2: {}", part2(parse_input(&input)));
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Range {
-    source: u64,
-    destination: u64,
-    length: u64,
-}
-
-#[derive(Debug, Clone)]
-struct Transformation {
-    tr_type: [String; 2],
-    tr_map: Vec<Range>,
+    println!("Part2: {}", part2(parse_input(&input)));
 }
 
 #[derive(Debug)]
 struct Map {
     seeds: Vec<u64>,
-    transformations: Vec<Transformation>,
+    transformations: Vec<Vec<[u64; 3]>>,
 }
 
 fn parse_input(input: &str) -> Map {
     let mut input = input.trim().split("\n\n");
-    let mut map = Map {
+    Map {
         seeds: input
             .next()
             .unwrap()
@@ -38,59 +25,40 @@ fn parse_input(input: &str) -> Map {
             .split(" ")
             .map(|s| s.trim().parse::<u64>().unwrap())
             .collect(),
-        transformations: vec![],
-    };
-    for transormation in input {
-        let mut split = transormation.split("map:\n");
-
-        let tr = Transformation {
-            tr_type: split
-                .next()
-                .unwrap()
-                .trim()
-                .split("-to-")
-                .map(|s| s.to_owned())
-                .collect::<Vec<String>>()
-                .try_into()
-                .unwrap(),
-            tr_map: split
-                .next()
-                .unwrap()
-                .split("\n")
-                .map(|range| {
-                    let range: Vec<u64> = range.split(" ").map(|n| n.parse().unwrap()).collect();
-                    Range {
-                        source: range[1],
-                        destination: range[0],
-                        length: range[2],
-                    }
-                })
-                .collect(),
-        };
-        map.transformations.push(tr);
+        transformations: input
+            .map(|transormation| {
+                transormation
+                    .split("map:\n")
+                    .last()
+                    .unwrap()
+                    .split("\n")
+                    .map(|range| {
+                        range
+                            .split(" ")
+                            .map(|n| n.parse().unwrap())
+                            .collect::<Vec<u64>>()
+                            .try_into()
+                            .unwrap()
+                    })
+                    .collect()
+            })
+            .collect(),
     }
-    map
 }
 
 fn part1(map: Map) -> u64 {
     map.seeds
-        .iter()
-        .map(|seed| {
-            let mut current_value = *seed;
-            'trloop: for transformation in &map.transformations {
-                for Range {
-                    source,
-                    destination,
-                    length,
-                } in &transformation.tr_map
-                {
-                    if current_value >= *source && current_value < source + length {
-                        current_value = destination + (current_value - source);
-                        continue 'trloop;
+        .into_iter()
+        .map(|mut seed| {
+            for transformation in &map.transformations {
+                for [destination, source, length] in transformation {
+                    if seed >= *source && seed < source + length {
+                        seed = destination + (seed - source);
+                        break;
                     }
                 }
             }
-            current_value
+            seed
         })
         .min()
         .unwrap()
