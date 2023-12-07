@@ -7,6 +7,7 @@ struct Hand {
     str_repr_for_cmp: String,
     bid: u64,
     cards: HashMap<u8, u8>,
+    jokers: u8,
 }
 
 impl Hand {
@@ -15,12 +16,13 @@ impl Hand {
             str_repr: hand.to_string(),
             str_repr_for_cmp: hand
                 .replace("T", &(('9' as u8 + 1) as char).to_string())
-                .replace("J", &(('9' as u8 + 2) as char).to_string())
+                .replace("J", "1")
                 .replace("Q", &(('9' as u8 + 3) as char).to_string())
                 .replace("K", &(('9' as u8 + 4) as char).to_string())
                 .replace("A", &(('9' as u8 + 5) as char).to_string()),
             bid,
             cards: HashMap::new(),
+            jokers: 0,
         };
         for card in hand.chars() {
             let value: u8 = match card {
@@ -31,11 +33,15 @@ impl Hand {
                 'A' => 14,
                 _ => card.to_digit(10).unwrap() as u8,
             };
-            parsed_hand
-                .cards
-                .entry(value)
-                .and_modify(|v| *v += 1)
-                .or_insert(1);
+            if value == 11 {
+                parsed_hand.jokers += 1;
+            } else {
+                parsed_hand
+                    .cards
+                    .entry(value)
+                    .and_modify(|v| *v += 1)
+                    .or_insert(1);
+            }
         }
         parsed_hand
     }
@@ -65,8 +71,8 @@ impl Ord for Hand {
         let hand_a = self.sort();
         let hand_b = other.sort();
         for i in 0..hand_a.len().max(hand_b.len()) {
-            let &(a_number, _) = hand_a.get(i).unwrap();
-            let &(b_number, _) = hand_b.get(i).unwrap();
+            let a_number = hand_a.get(i).map_or(0, |v| v.0) + if i == 0 { self.jokers } else { 0 };
+            let b_number = hand_b.get(i).map_or(0, |v| v.0) + if i == 0 { other.jokers } else { 0 };
             if a_number > b_number {
                 return Ordering::Greater;
             } else if a_number < b_number {
@@ -80,7 +86,7 @@ impl Ord for Hand {
 #[allow(dead_code)]
 pub fn main() {
     let input = get_input!(file!());
-    println!("Part1: {}", part1(parse_input(&input)));
+    println!("Part2: {}", part2(parse_input(&input)));
 }
 
 fn parse_input(input: &str) -> Vec<(&str, u64)> {
@@ -97,7 +103,7 @@ fn parse_input(input: &str) -> Vec<(&str, u64)> {
         .collect()
 }
 
-fn part1(hands: Vec<(&str, u64)>) -> u64 {
+fn part2(hands: Vec<(&str, u64)>) -> u64 {
     let mut hands: Vec<Hand> = hands.iter().map(|h| Hand::from_str(h.0, h.1)).collect();
     hands.sort_by(|a, b| a.cmp(&b));
     hands
@@ -120,8 +126,8 @@ QQQJA 483
         ";
 
     #[test]
-    fn test_part1() {
-        assert_eq!(part1(parse_input(EXAMPLE)), 6440);
-        assert_eq!(part1(parse_input(&get_input!(file!()))), 249748283);
+    fn test_part2() {
+        assert_eq!(part2(parse_input(EXAMPLE)), 5905);
+        assert_eq!(part2(parse_input(&get_input!(file!()))), 248029057);
     }
 }
