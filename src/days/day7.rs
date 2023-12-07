@@ -4,6 +4,7 @@ use std::{cmp::Ordering, collections::HashMap};
 #[derive(Debug, PartialEq, Eq)]
 struct Hand {
     str_repr: String,
+    str_repr_for_cmp: String,
     bid: u64,
     cards: HashMap<u8, u8>,
 }
@@ -12,6 +13,12 @@ impl Hand {
     fn from_str(hand: &str, bid: u64) -> Self {
         let mut parsed_hand = Hand {
             str_repr: hand.to_string(),
+            str_repr_for_cmp: hand
+                .replace("T", &(('9' as u8 + 1) as char).to_string())
+                .replace("J", &(('9' as u8 + 2) as char).to_string())
+                .replace("Q", &(('9' as u8 + 3) as char).to_string())
+                .replace("K", &(('9' as u8 + 4) as char).to_string())
+                .replace("A", &(('9' as u8 + 5) as char).to_string()),
             bid,
             cards: HashMap::new(),
         };
@@ -58,28 +65,15 @@ impl Ord for Hand {
         let hand_a = self.sort();
         let hand_b = other.sort();
         for i in 0..hand_a.len().max(hand_b.len()) {
-            let &(a_number, a_value) = hand_a.get(i).unwrap();
-            let &(b_number, b_value) = hand_b.get(i).unwrap();
-
+            let &(a_number, _) = hand_a.get(i).unwrap();
+            let &(b_number, _) = hand_b.get(i).unwrap();
             if a_number > b_number {
                 return Ordering::Greater;
             } else if a_number < b_number {
                 return Ordering::Less;
             }
-
-            if let Some(next_a) = hand_a.get(i + 1) {
-                let &(next_a_number, _) = next_a;
-                let &(next_b_number, _) = hand_b.get(i + 1).unwrap();
-                if next_a_number != next_b_number {
-                    continue;
-                }
-            }
-
-            if a_value != b_value {
-                return a_value.cmp(&b_value);
-            }
         }
-        Ordering::Equal
+        self.str_repr_for_cmp.cmp(&other.str_repr_for_cmp)
     }
 }
 
@@ -131,7 +125,7 @@ QQQJA 483
     #[test]
     fn test_part1() {
         assert_eq!(part1(parse_input(EXAMPLE)), 6440);
-        assert_eq!(part1(parse_input(&get_input!(file!()))), 0);
+        assert_eq!(part1(parse_input(&get_input!(file!()))), 249748283);
     }
 
     // #[test]
