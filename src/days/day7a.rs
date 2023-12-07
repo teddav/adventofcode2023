@@ -81,7 +81,6 @@ impl Ord for Hand {
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input)));
-    // println!("Part2: {}", part2(parse_input(&input)));
 }
 
 fn parse_input(input: &str) -> Vec<(&str, u64)> {
@@ -108,8 +107,6 @@ fn part1(hands: Vec<(&str, u64)>) -> u64 {
         .sum()
 }
 
-// fn part2(input: Vec<&str>) {}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,10 +124,4 @@ QQQJA 483
         assert_eq!(part1(parse_input(EXAMPLE)), 6440);
         assert_eq!(part1(parse_input(&get_input!(file!()))), 249748283);
     }
-
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(parse_input(EXAMPLE)), 0);
-    //     assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
-    // }
 }
