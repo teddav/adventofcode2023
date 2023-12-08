@@ -5,6 +5,7 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
+num = "0.4.1"
 regex = "1.10.2"
 
 [build-dependencies]
