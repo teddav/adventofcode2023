@@ -24,6 +24,7 @@ fn main() {
 
     let re = Regex::new(r"day(\d+)(a|b)?").unwrap();
     let latest_day = days.iter().fold((1, ""), |latest, filename| {
+        println!("filename: {filename}");
         let captures = re.captures(filename).unwrap();
         let n = captures.get(1).unwrap().as_str().parse::<u8>().unwrap();
         if n < latest.0 {
