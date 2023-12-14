@@ -1,8 +1,40 @@
 use aoc2023::get_input;
+use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
+use std::time::Instant;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 struct Pos(usize, usize);
 
+struct HashedPositions(HashSet<Pos>);
+
+impl HashedPositions {
+    fn from_vec(item: &Vec<Pos>) -> Self {
+        let set = HashSet::from_iter(item.iter().cloned());
+        HashedPositions(set)
+    }
+}
+
+impl PartialEq for HashedPositions {
+    fn eq(&self, other: &HashedPositions) -> bool {
+        self.0.is_subset(&other.0) && other.0.is_subset(&self.0)
+    }
+}
+impl Eq for HashedPositions {}
+impl Hash for HashedPositions {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        let mut a: Vec<&Pos> = self.0.iter().collect();
+        a.sort();
+        for s in a.iter() {
+            s.hash(state);
+        }
+    }
+}
+
+#[derive(Debug, Hash, PartialEq, Eq)]
 enum Direction {
     North,
     West,
@@ -14,7 +46,10 @@ enum Direction {
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input)));
+
+    let start = Instant::now();
     println!("Part2: {}", part2(parse_input(&input), 1000000000));
+    println!("Part2 time: {:?}", start.elapsed());
 }
 
 fn parse_input(input: &str) -> (Vec<Pos>, Vec<Pos>, usize, usize) {
@@ -45,7 +80,7 @@ fn part1((mut rounds, cubes, height, width): (Vec<Pos>, Vec<Pos>, usize, usize))
 
 fn part2(
     (mut rounds, cubes, height, width): (Vec<Pos>, Vec<Pos>, usize, usize),
-    mut cycles: usize,
+    cycles: usize,
 ) -> usize {
     let directions = vec![
         Direction::North,
@@ -53,11 +88,24 @@ fn part2(
         Direction::South,
         Direction::East,
     ];
-    while cycles > 0 {
+
+    let mut memo: HashMap<HashedPositions, usize> = HashMap::new();
+    let mut current_cycle = 0;
+
+    while current_cycle < cycles {
         for dir in &directions {
             tilt(dir, &mut rounds, &cubes, (width, height - 1));
         }
-        cycles -= 1;
+
+        let hashed = HashedPositions::from_vec(&rounds);
+        if let Some(&cycle) = memo.get(&hashed) {
+            let repeat_loop = current_cycle - cycle;
+            let advance_by = (cycles - 1 - current_cycle) / repeat_loop;
+            current_cycle += advance_by * repeat_loop;
+        }
+        memo.insert(hashed, current_cycle);
+
+        current_cycle += 1;
     }
 
     // print_map(&rounds, &cubes, height, width);
@@ -149,6 +197,10 @@ O.#..O.#.#
         assert_eq!(part2(parse_input(EXAMPLE), 1), 87);
         assert_eq!(part2(parse_input(EXAMPLE), 2), 69);
         assert_eq!(part2(parse_input(EXAMPLE), 3), 69);
+        assert_eq!(part2(parse_input(EXAMPLE), 20), 64);
+        assert_eq!(part2(parse_input(EXAMPLE), 100), 68);
+        assert_eq!(part2(parse_input(EXAMPLE), 1000), 64);
         assert_eq!(part2(parse_input(&get_input!(file!())), 1), 103356);
+        // assert_eq!(part2(parse_input(&get_input!(file!())), 1000000000), 102055);
     }
 }
