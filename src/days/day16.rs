@@ -1,6 +1,12 @@
+use aoc2023::get_input;
 use std::collections::{HashSet, VecDeque};
 
-use aoc2023::get_input;
+#[allow(dead_code)]
+pub fn main() {
+    let input = get_input!(file!());
+    println!("Part1: {}", part1(parse_input(&input)));
+    println!("Part2: {}", part2(parse_input(&input)));
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
@@ -81,13 +87,6 @@ impl Position {
     }
 }
 
-#[allow(dead_code)]
-pub fn main() {
-    let input = get_input!(file!());
-    println!("Part1: {}", part1(parse_input(&input)));
-    // println!("Part2: {}", part2(parse_input(&input)));
-}
-
 fn parse_input(input: &str) -> Vec<Vec<char>> {
     input
         .trim()
@@ -97,20 +96,28 @@ fn parse_input(input: &str) -> Vec<Vec<char>> {
 }
 
 fn part1(map: Vec<Vec<char>>) -> usize {
+    let energized: HashSet<Position> = get_energized(&map, Position(0, 0), Direction::Right);
+    energized.len()
+}
+
+fn get_energized(
+    map: &Vec<Vec<char>>,
+    start_pos: Position,
+    start_dir: Direction,
+) -> HashSet<Position> {
     let max = (map[0].len() - 1, map.len() - 1);
 
     let mut beams = VecDeque::new();
     let mut seen = HashSet::new();
 
-    for first_direction in Direction::Right.next(map[0][0]) {
-        beams.push_back((Position(0, 0), first_direction))
+    for first_direction in start_dir.next(map[start_pos.1][start_pos.0]) {
+        beams.push_back((start_pos, first_direction))
     }
 
     while let Some((current_pos, current_dir)) = beams.pop_front() {
         if seen.contains(&(current_pos, current_dir)) {
             continue;
         }
-        // println!("-> {:?} {:?}", current_pos, current_dir);
         seen.insert((current_pos, current_dir));
 
         if let Some(next_pos) = current_pos.next(current_dir, max) {
@@ -119,11 +126,31 @@ fn part1(map: Vec<Vec<char>>) -> usize {
             }
         }
     }
-
-    let energized: HashSet<Position> = HashSet::from_iter(seen.iter().map(|v| v.0));
-    energized.len()
+    HashSet::from_iter(seen.iter().map(|v| v.0))
 }
-// fn part2(input: Vec<&str>) {}
+
+fn part2(map: Vec<Vec<char>>) -> usize {
+    let max = (map[0].len() - 1, map.len() - 1);
+    let mut energized = vec![];
+
+    for x in 0..=max.0 {
+        let _energized = get_energized(&map, Position(x, 0), Direction::Down);
+        energized.push(_energized.len());
+
+        let _energized = get_energized(&map, Position(x, max.1), Direction::Up);
+        energized.push(_energized.len());
+    }
+
+    for y in 0..=max.1 {
+        let _energized = get_energized(&map, Position(0, y), Direction::Right);
+        energized.push(_energized.len());
+
+        let _energized = get_energized(&map, Position(max.0, y), Direction::Left);
+        energized.push(_energized.len());
+    }
+
+    *energized.iter().max().unwrap()
+}
 
 #[cfg(test)]
 mod tests {
@@ -148,9 +175,9 @@ mod tests {
         assert_eq!(part1(parse_input(&get_input!(file!()))), 8323);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(parse_input(EXAMPLE)), 0);
-    //     assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(parse_input(EXAMPLE)), 51);
+        assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
+    }
 }
