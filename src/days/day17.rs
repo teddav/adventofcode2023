@@ -1,8 +1,6 @@
 use aoc2023::get_input;
 use pathfinding::prelude::dijkstra;
 use std::time::Instant;
-// use std::cmp::Ordering;
-// use std::collections::{BinaryHeap, HashSet};
 
 #[allow(dead_code)]
 pub fn main() {
@@ -22,20 +20,7 @@ struct Node {
     pos: Position,
     dir: Direction,
     straight_inarow: u32,
-    // value: u32,
-    // heat_loss: u32,
 }
-
-// impl PartialOrd for Node {
-//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-//         Some(self.cmp(other))
-//     }
-// }
-// impl Ord for Node {
-//     fn cmp(&self, other: &Self) -> Ordering {
-//         self.value.cmp(&other.value).reverse()
-//     }
-// }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
 struct Position(usize, usize);
@@ -151,8 +136,6 @@ fn part1(map: Vec<Vec<u32>>) -> u32 {
             pos: Position(0, 0),
             dir: Direction::Right,
             straight_inarow: 0,
-            // value: map[0][0],
-            // heat_loss: 0,
         },
         |n| {
             n.pos
@@ -165,8 +148,6 @@ fn part1(map: Vec<Vec<u32>>) -> u32 {
                             pos: *pos,
                             dir: *dir,
                             straight_inarow: *straight_inarow,
-                            // value: value,
-                            // heat_loss: n.heat_loss + value,
                         },
                         value,
                     )
@@ -179,7 +160,28 @@ fn part1(map: Vec<Vec<u32>>) -> u32 {
     .1
 }
 
-// fn part1_almost(map: Vec<Vec<u32>>) -> u32 {
+// use std::cmp::Ordering;
+// use std::collections::{BinaryHeap, HashSet};
+// #[derive(Debug, PartialEq, Eq, Clone)]
+// struct Node {
+//     pos: Position,
+//     dir: Direction,
+//     straight_inarow: u32,
+//     value: u32,
+//     heat_loss: u32,
+// }
+
+// impl PartialOrd for Node {
+//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+//         Some(self.cmp(other))
+//     }
+// }
+// impl Ord for Node {
+//     fn cmp(&self, other: &Self) -> Ordering {
+//         self.value.cmp(&other.value).reverse()
+//     }
+// }
+// fn part1(map: Vec<Vec<u32>>) -> u32 {
 //     let max = (map[0].len() - 1, map.len() - 1);
 
 //     let mut path = BinaryHeap::new();
@@ -204,7 +206,9 @@ fn part1(map: Vec<Vec<u32>>) -> u32 {
 //         seen.insert(pos);
 
 //         if pos == Position(max.0, max.1) {
-//             return heat_loss;
+//             println!("done");
+//             println!("{heat_loss}");
+//             break;
 //         }
 
 //         for (next_pos, next_dir, next_straight_inarow) in pos.next(dir, max, straight_inarow, 0, 3)

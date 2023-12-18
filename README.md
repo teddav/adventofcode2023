@@ -12,6 +12,7 @@ cargo run --release
 ```bash
 cargo run -- -d 15
 cargo run --release -- -d 15
+cargo watch -x "run --release -- -d 17" -i src/days/mod.rs
 ```
 
 ## Tests
