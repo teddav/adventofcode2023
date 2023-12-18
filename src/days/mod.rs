@@ -16,6 +16,7 @@ pub mod day4;
 pub mod day13b;
 pub mod day12b;
 pub mod day16;
+pub mod day17;
 pub mod day7a;
-    #[path = "day16.rs"]
+    #[path = "day17.rs"]
     pub mod latest;
