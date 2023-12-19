@@ -45,13 +45,7 @@ struct Rule {
     destination: String,
 }
 
-#[derive(Debug)]
-struct Workflow {
-    name: String,
-    rules: Vec<Rule>,
-}
-
-type Workflows = HashMap<String, Workflow>;
+type Workflows = HashMap<String, Vec<Rule>>;
 
 #[derive(Debug, Clone, Copy)]
 struct Part {
@@ -75,26 +69,23 @@ fn parse_input(input: &str) -> (Workflows, Vec<Part>) {
 
             (
                 caps["name"].to_string(),
-                Workflow {
-                    name: caps["name"].to_string(),
-                    rules: rules
-                        .into_iter()
-                        .map(|r| {
-                            let rule = r.split(":").collect::<Vec<&str>>();
-                            if rule.len() == 1 {
-                                Rule {
-                                    condition: None,
-                                    destination: rule[0].to_string(),
-                                }
-                            } else {
-                                Rule {
-                                    condition: Some(Condition::from(rule[0])),
-                                    destination: rule[1].to_string(),
-                                }
+                rules
+                    .into_iter()
+                    .map(|r| {
+                        let rule = r.split(":").collect::<Vec<&str>>();
+                        if rule.len() == 1 {
+                            Rule {
+                                condition: None,
+                                destination: rule[0].to_string(),
                             }
-                        })
-                        .collect(),
-                },
+                        } else {
+                            Rule {
+                                condition: Some(Condition::from(rule[0])),
+                                destination: rule[1].to_string(),
+                            }
+                        }
+                    })
+                    .collect(),
             )
         })
         .collect::<Workflows>();
@@ -125,7 +116,7 @@ fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u32 {
         let mut current_workflow = workflows.get("in").unwrap();
 
         loop {
-            for rule in current_workflow.rules.iter() {
+            for rule in current_workflow {
                 let destination = if let Some(condition) = rule.condition {
                     if condition.matches(&part) {
                         Some(&rule.destination)
@@ -137,10 +128,10 @@ fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u32 {
                 };
 
                 if let Some(destination) = destination {
-                    if is_final(destination) {
-                        if destination == "A" {
-                            accepted.push(part);
-                        }
+                    if destination == "A" {
+                        accepted.push(part);
+                        continue 'main;
+                    } else if destination == "R" {
                         continue 'main;
                     } else {
                         current_workflow = workflows.get(destination).unwrap();
@@ -155,10 +146,6 @@ fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u32 {
         .iter()
         .map(|part| part.x + part.m + part.a + part.s)
         .sum()
-}
-
-fn is_final(destination: &str) -> bool {
-    destination == "A" || destination == "R"
 }
 
 // fn part2(input: Vec<&str>) {}
