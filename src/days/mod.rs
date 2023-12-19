@@ -13,6 +13,7 @@ pub mod day2;
 pub mod day18;
 pub mod day5;
 pub mod day1;
+pub mod day19;
 pub mod day4;
 pub mod day13b;
 pub mod day12b;
@@ -20,7 +21,7 @@ pub mod day16;
 pub mod day17;
 pub mod day7a;
 
-#[path = "day18.rs"]
+#[path = "day19.rs"]
 pub mod latest;
 
 pub const days_main: &[(&str, fn())] = &[
@@ -39,6 +40,7 @@ pub const days_main: &[(&str, fn())] = &[
 	("18", day18::main),
 	("5", day5::main),
 	("1", day1::main),
+	("19", day19::main),
 	("4", day4::main),
 	("13b", day13b::main),
 	("12b", day12b::main),
