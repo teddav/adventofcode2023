@@ -1,17 +1,16 @@
-use std::collections::HashMap;
-
 use aoc2023::get_input;
 use regex::Regex;
+use std::collections::HashMap;
 
 #[allow(dead_code)]
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input)));
-    // println!("Part2: {}", part2(parse_input(&input)));
+    println!("Part2: {}", part2(parse_input(&input)));
 }
 
 #[derive(Debug, Clone, Copy)]
-struct Condition(char, char, u32);
+struct Condition(char, char, u64);
 impl Condition {
     fn from(s: &str) -> Self {
         let re_condition = Regex::new(r"^([xmas])([<>])(\d+)$").unwrap();
@@ -46,13 +45,14 @@ struct Rule {
 }
 
 type Workflows = HashMap<String, Vec<Rule>>;
+type MyRange = (u64, u64);
 
 #[derive(Debug, Clone, Copy)]
 struct Part {
-    x: u32,
-    m: u32,
-    a: u32,
-    s: u32,
+    x: u64,
+    m: u64,
+    a: u64,
+    s: u64,
 }
 
 fn parse_input(input: &str) -> (Workflows, Vec<Part>) {
@@ -109,7 +109,7 @@ fn parse_input(input: &str) -> (Workflows, Vec<Part>) {
     (workflows, parts)
 }
 
-fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u32 {
+fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u64 {
     let mut accepted = vec![];
 
     'main: for part in parts {
@@ -148,7 +148,69 @@ fn part1((workflows, parts): (Workflows, Vec<Part>)) -> u32 {
         .sum()
 }
 
-// fn part2(input: Vec<&str>) {}
+fn part2((workflows, _): (Workflows, Vec<Part>)) -> u64 {
+    let mut part = HashMap::new();
+    part.insert('x', Some((1, 4000)));
+    part.insert('m', Some((1, 4000)));
+    part.insert('a', Some((1, 4000)));
+    part.insert('s', Some((1, 4000)));
+
+    part2_inner(&workflows, "in", part)
+}
+
+fn intersection(a: &MyRange, b: &MyRange) -> Option<MyRange> {
+    if b.0 > a.1 || a.0 > b.1 {
+        return None;
+    }
+    let start = a.0.max(b.0);
+    let end = a.1.min(b.1);
+    if start > end {
+        return None;
+    }
+    Some((start, end))
+}
+
+fn part2_inner(workflows: &Workflows, name: &str, mut part: HashMap<char, Option<MyRange>>) -> u64 {
+    if name == "R" {
+        return 0;
+    }
+
+    if name == "A" {
+        return part
+            .values()
+            .into_iter()
+            .map(|x| x.clone().and_then(|r| Some(r.1 - r.0 + 1)).unwrap_or(1) as u64)
+            .product();
+    }
+
+    let mut inner_count = 0;
+
+    for rule in workflows.get(name).unwrap() {
+        if let Some(condition) = rule.condition {
+            let (condition_range, rest) = match condition.1 {
+                '<' => ((1, condition.2 - 1), (condition.2, 4000)),
+                '>' => ((condition.2 + 1, 4000), (1, condition.2)),
+                _ => panic!("wrong condition"),
+            };
+
+            let mut next_part = part.clone();
+            if let Some(range) = next_part.get(&condition.0).unwrap() {
+                next_part.insert(condition.0, intersection(range, &condition_range));
+                inner_count += part2_inner(workflows, &rule.destination, next_part);
+            }
+
+            if let Some(r) = part.get(&condition.0).unwrap() {
+                part.insert(condition.0, intersection(r, &rest));
+            }
+
+            continue;
+        }
+
+        inner_count += part2_inner(workflows, &rule.destination, part.clone());
+    }
+
+    inner_count
+}
 
 #[cfg(test)]
 mod tests {
@@ -178,12 +240,11 @@ hdj{m>838:A,pv}
     fn test_part1() {
         assert_eq!(part1(parse_input(EXAMPLE)), 19114);
         assert_eq!(part1(parse_input(&get_input!(file!()))), 319295);
-        // 241508
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(parse_input(EXAMPLE)), 0);
-    //     assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(parse_input(EXAMPLE)), 167409079868000);
+        assert_eq!(part2(parse_input(&get_input!(file!()))), 110807725108076);
+    }
 }
