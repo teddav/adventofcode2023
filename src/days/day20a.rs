@@ -1,13 +1,11 @@
-use std::collections::{HashMap, VecDeque};
-
 use aoc2023::get_input;
 use regex::Regex;
+use std::collections::{HashMap, VecDeque};
 
 #[allow(dead_code)]
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input)));
-    // println!("Part2: {}", part2(parse_input(&input)));
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -94,8 +92,6 @@ fn parse_input(input: &str) -> HashMap<String, Module> {
 }
 
 fn part1(input: HashMap<String, Module>) -> usize {
-    // println!("{input:#?}");
-
     let mut current_state = input.clone();
     let mut module_queue = VecDeque::new();
     let mut sent_pulses = vec![];
@@ -109,18 +105,11 @@ fn part1(input: HashMap<String, Module>) -> usize {
         module_queue.push_back(String::from("broadcaster"));
 
         while let Some(current_module_name) = module_queue.pop_front() {
-            // println!("---> {current_module_name}");
-            // println!("{current_state:#?}");
-
             let current_module = current_state.get(&current_module_name).unwrap().clone();
 
             for destination in current_module.destinations.iter() {
-                // if let Some(pulse) = current_module.pulses.pop() {
                 for pulse in current_module.pulses.iter() {
                     sent_pulses.push(*pulse);
-
-                    // println!("\n\n{current_module_name} -{pulse:?}->{destination}");
-                    // println!("{current_state:?}");
 
                     current_state
                         .entry(destination.clone())
@@ -140,12 +129,13 @@ fn part1(input: HashMap<String, Module>) -> usize {
                             ModuleType::Conjunction => {
                                 e.conjunction_last_pulses
                                     .insert(current_module_name.to_string(), pulse.clone());
+
                                 let last_pulses = e
                                     .conjunction_last_pulses
                                     .values()
                                     .map(|v| *v)
                                     .collect::<Vec<PulseType>>();
-                                // println!("last_pulses {last_pulses:?}");
+
                                 if last_pulses.iter().all(|p| matches!(p, PulseType::High)) {
                                     e.pulses.push(PulseType::Low);
                                 } else {
@@ -167,8 +157,6 @@ fn part1(input: HashMap<String, Module>) -> usize {
         button_pushes -= 1;
     }
 
-    // println!("{current_state:#?}");
-
     let low = sent_pulses
         .iter()
         .filter(|p| matches!(p, PulseType::Low))
@@ -180,7 +168,6 @@ fn part1(input: HashMap<String, Module>) -> usize {
 
     low * high
 }
-// fn part2(input: Vec<&str>) {}
 
 #[cfg(test)]
 mod tests {
@@ -207,10 +194,4 @@ broadcaster -> a
         assert_eq!(part1(parse_input(EXAMPLE2)), 11687500);
         assert_eq!(part1(parse_input(&get_input!(file!()))), 944750144);
     }
-
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(parse_input(EXAMPLE)), 0);
-    //     assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
-    // }
 }
