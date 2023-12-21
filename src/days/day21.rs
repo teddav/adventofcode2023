@@ -5,7 +5,7 @@ use std::collections::{HashSet, VecDeque};
 pub fn main() {
     let input = get_input!(file!());
     println!("Part1: {}", part1(parse_input(&input), 64));
-    // println!("Part2: {}", part2(parse_input(&input)));
+    println!("Part2: {}", part2(parse_input(&input), 26501365));
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -86,7 +86,9 @@ fn next_positions(map: &Vec<Vec<char>>, pos: &Pos) -> Vec<Pos> {
     next
 }
 
-// fn part2(input: Vec<&str>) {}
+fn part2((map, start): (Vec<Vec<char>>, Pos), max_steps: usize) -> usize {
+    1
+}
 
 #[cfg(test)]
 mod tests {
@@ -113,9 +115,15 @@ mod tests {
         assert_eq!(part1(parse_input(&get_input!(file!())), 64), 3666);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(parse_input(EXAMPLE)), 0);
-    //     assert_eq!(part2(parse_input(&get_input!(file!()))), 0);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(parse_input(EXAMPLE), 6), 16);
+        assert_eq!(part2(parse_input(EXAMPLE), 10), 50);
+        assert_eq!(part2(parse_input(EXAMPLE), 50), 1594);
+        assert_eq!(part2(parse_input(EXAMPLE), 100), 6536);
+        assert_eq!(part2(parse_input(EXAMPLE), 500), 167004);
+        assert_eq!(part2(parse_input(EXAMPLE), 1000), 668697);
+        assert_eq!(part2(parse_input(EXAMPLE), 5000), 16733044);
+        assert_eq!(part2(parse_input(&get_input!(file!())), 26501365), 0);
+    }
 }
