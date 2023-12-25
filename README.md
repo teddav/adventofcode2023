@@ -37,3 +37,10 @@ cargo run -vv
 cargo watch -x "run -vv" -i src/days/mod.rs
 cargo watch -x "run -vv" -i src/days/mod.rs -c
 ```
+
+# Writeups
+
+https://github.com/maneatingape/advent-of-code-rust/tree/main/src/year2023
+https://www.youtube.com/@hyper-neutrino/videos
+https://github.com/fspoettel/advent-of-code-2023/tree/main/src/bin
+https://github.com/ChristopherBiscardi/advent-of-code/tree/main/2023/rust
